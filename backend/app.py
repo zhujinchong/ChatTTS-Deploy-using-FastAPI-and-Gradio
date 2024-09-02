@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
+import ChatTTS
 import wave
 import numpy as np
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import StreamingResponse, JSONResponse, Response
-import ChatTTS
 from starlette.middleware.cors import CORSMiddleware  # 引入 CORS中间件模块
-from utils import *
 import uvicorn
 import soundfile
 import io
 import typing
+import pydantic
+import torch
 
 
 app = FastAPI()
@@ -22,14 +23,45 @@ app.add_middleware(
 )  # 允许跨域的headers，可以用来鉴别来源等作用。
 
 
+class TTSInput(pydantic.BaseModel):
+    text: str = None
+    seed: int = 697
+    speed: int = 3
+    streaming: bool = False
+
+
+def get_chat_model() -> ChatTTS.Chat:
+    chat = ChatTTS.Chat()
+    chat.load_models(source="custom", local_path="./models/ChatTTS")
+    return chat
+
+
+def clear_cuda_cache():
+    """
+    Clear CUDA cache
+    """
+    torch.cuda.empty_cache()
+
+
+def deterministic(seed=10):
+    """
+    Set random seed for reproducibility
+    """
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
 def generate_tts_audio(request: TTSInput, chat: ChatTTS.Chat):
-    deterministic()
+    deterministic(seed=request.seed)
     # 选择speaker：https://modelscope.cn/studios/ttwwwaa/ChatTTS_Speaker
-    r = chat.sample_random_speaker(seed=request.seed)
+    r = chat.sample_random_speaker()
     # 推理参数
     params_infer_code = {
         "spk_emb": r,  # add sampled speaker
-        'prompt': f'[speed_{request.speed}]',
+        "prompt": f"[speed_{request.speed}]",
         "temperature": 0.1,  # using customtemperature
         "top_P": 0.7,  # top P decode
         "top_K": 1,  # top K decode
@@ -37,16 +69,16 @@ def generate_tts_audio(request: TTSInput, chat: ChatTTS.Chat):
     # refine参数：口语/笑/停顿
     params_refine_text = {"prompt": "[oral_2][laugh_0][break_6]"}
 
-    # 推理 
+    # 推理
     if request.streaming:
         wavs_gen = chat.infer(
             [request.text],
-            skip_refine_text=False, # 
-            refine_text_only=True, # 模型自动添加停顿
+            skip_refine_text=False,  #
+            refine_text_only=True,  # 模型自动添加停顿
             params_infer_code=params_infer_code,
             params_refine_text=params_refine_text,
             use_decoder=True,
-            stream=True
+            stream=True,
         )
         for gen in wavs_gen:
             wavs = [np.array([[]])]
@@ -57,8 +89,8 @@ def generate_tts_audio(request: TTSInput, chat: ChatTTS.Chat):
     else:
         wavs = chat.infer(
             [request.text],
-            skip_refine_text=False, # 
-            refine_text_only=True, # 模型自动添加停顿
+            skip_refine_text=False,  #
+            refine_text_only=True,  # 模型自动添加停顿
             params_infer_code=params_infer_code,
             params_refine_text=params_refine_text,
             use_decoder=True,
@@ -66,7 +98,9 @@ def generate_tts_audio(request: TTSInput, chat: ChatTTS.Chat):
         clear_cuda_cache()
         audio_data = wavs[0]
         audio_data = np.array(wavs[0], dtype=np.float32)
-        audio_data = (audio_data * 32767).astype(np.int16) # 将浮点数音频样本缩放到 int16 类型能表示的范围内
+        audio_data = (audio_data * 32767).astype(
+            np.int16
+        )  # 将浮点数音频样本缩放到 int16 类型能表示的范围内
         yield audio_data
 
 
@@ -76,6 +110,7 @@ def tts(request: TTSInput, chat: ChatTTS.Chat = Depends(get_chat_model)):
         sample_rate = 24000
         if request.streaming:
             tts_generator = generate_tts_audio(request)
+
             def streaming_generator(tts_generator: typing.Generator):
                 is_first = True
                 if is_first:
@@ -98,7 +133,10 @@ def tts(request: TTSInput, chat: ChatTTS.Chat = Depends(get_chat_model)):
                         io_buffer.seek(0)
                         res_audio_data = io_buffer.getvalue()
                         yield res_audio_data
-            return StreamingResponse(streaming_generator(tts_generator), media_type="audio/wav")
+
+            return StreamingResponse(
+                streaming_generator(tts_generator), media_type="audio/wav"
+            )
 
         else:
             audio_data = next(generate_tts_audio(request))

@@ -1,1 +1,1 @@
-from ChatTTS.core import Chat
+from .core import Chat

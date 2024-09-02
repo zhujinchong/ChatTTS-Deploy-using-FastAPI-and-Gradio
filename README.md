@@ -1,17 +1,39 @@
-## **一、项目简介**
+# **一、项目简介**
 
 使用 FastAPI 和 Gradio 本地部署 ChatTTS 文本转语音模型，并通过 Docker Compose 进行容器化部署。
 
 **操作流程demo：**
 
-
-## **二、本地安装使用**
+# **二、本地安装使用**
 
 **环境依赖：**
 
 ```bash
-cuda12.1   
-pip install requirements.txt
+conda create -n tts python==3.9
+conda activate tts 
+pip install --upgrade pip
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+**ChatTTS代码下载：（项目里已包含，这一步可以省略）**
+
+```bash
+cd backend
+git clone https://github.com/2noise/ChatTTS
+cd ChatTTS
+git checkout e6412b1
+cd ..
+mv ChatTTS temp
+mv temp/ChatTTS ./ChatTTS
+rm -rf temp
+```
+
+**ChatTTS模型下载：**
+
+```bash
+cd backend/models/
+git lfs install
+git lfs clone https://www.modelscope.cn/mirror013/ChatTTS.git
 ```
 
 **程序运行方式：**
@@ -52,8 +74,7 @@ curl -X POST -H 'content-type: application/json' -d\
 python client.py
 ```
 
-
-## **三、Docker 部署**
+# **三、Docker 部署**
 
 ```
 docker compose build
@@ -65,8 +86,7 @@ docker compose up
 * 构建FastAPI和Streamlit服务的Docker镜像。
 * 启动两个服务，将FastAPI暴露在8000端口，Streamlit暴露在8501端口。
 
-
-## 四、ChatTTS参数
+# **四、ChatTTS参数**
 
 **固定音色**
 
@@ -85,7 +105,6 @@ def sample_random_speaker(self, ):
 
 音色seed可以参考：[ChatTTS 稳定音色/区分男女 · 创空间 (modelscope.cn)](https://modelscope.cn/studios/ttwwwaa/ChatTTS_Speaker)
 
-
 **固定语速**
 
 ChatTTS 中，语速是 speed 参数实现的，设置播放的语速，从慢到快，共有10个等级[speed_0]~[speed_9]。
@@ -93,7 +112,6 @@ ChatTTS 中，语速是 speed 参数实现的，设置播放的语速，从慢�
 ```
 params_infer_code = {'prompt':'[speed_2]'}
 ```
-
 
 **添加停顿词**
 
@@ -103,9 +121,9 @@ ChatTTS 中，主要的停顿有三种，分别是
 * 笑声：笑声主要有10个等级[laugh_0]~[laugh_9]。当然，模型会根据文本自动添加笑声，也可以像上面的示例一样手动添加 [laugh].
 * 口头语：口头语主要有10个等级[oral_0]~[oral_9]。
 
+# **参考**
 
-## **参考**
-
+- https://github.com/2noise/ChatTTS
 - https://github.com/zhujinchong/ChatTTS-Deployment-using-FastAPI-and-Streamlit
 - https://github.com/6drf21e/ChatTTS_colab
 - https://blog.csdn.net/u010522887/article/details/139719895
