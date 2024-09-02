@@ -1,5 +1,16 @@
 # **一、项目简介**
 
+ChatTTS优点：
+
+* 支持中英文
+* 支持流式返回
+
+ChatTTS缺点：
+
+* 还是有点慢
+* 因为训练数据中添加了少量高频噪声，所以合成语音感觉不稳定。偶尔有个字读不出来。
+
+
 使用 FastAPI 和 Gradio 本地部署 ChatTTS 文本转语音模型，并通过 Docker Compose 进行容器化部署。
 
 **操作流程demo：**
@@ -8,16 +19,16 @@
 
 **环境依赖：**
 
-```bash
+```
 conda create -n tts python==3.9
 conda activate tts 
 pip install --upgrade pip
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-**ChatTTS代码下载：（项目里已包含，这一步可以省略）**
+**ChatTTS代码下载：（项目里已包含ChatTTS代码，这一步可以省略）**
 
-```bash
+```
 cd backend
 git clone https://github.com/2noise/ChatTTS
 cd ChatTTS
@@ -30,7 +41,7 @@ rm -rf temp
 
 **ChatTTS模型下载：**
 
-```bash
+```
 cd backend/models/
 git lfs install
 git lfs clone https://www.modelscope.cn/mirror013/ChatTTS.git
@@ -59,19 +70,6 @@ streamlit run ui.py
 curl -X POST -H 'content-type: application/json' -d\
    '{"text":"朋友你好啊，今天天气怎么样 ？", "output_path": "abc.wav", "seed":232}' \
     http://localhost:8000/tts
-```
-
-- 参数说明：
-
-  text：要合成的文本
-
-  output_path：合成音频的保存路径
-
-  seed：音色种子，不同的种子会产生不同的音色，默认为 697（测试的一个比较好的音色）
-- 运行客户端
-
-```bash
-python client.py
 ```
 
 # **三、Docker 部署**
@@ -121,9 +119,36 @@ ChatTTS 中，主要的停顿有三种，分别是
 * 笑声：笑声主要有10个等级[laugh_0]~[laugh_9]。当然，模型会根据文本自动添加笑声，也可以像上面的示例一样手动添加 [laugh].
 * 口头语：口头语主要有10个等级[oral_0]~[oral_9]。
 
+
+# **五、问题**
+
+**问题1：中文日期(2023.12)或数字(1,2,3)等无法识别。**
+
+参考：[中文部分无法识别数字（1，2，3等）和句号（。）是需要设置什么吗？ · Issue #644 · 2noise/ChatTTS (github.com)](https://github.com/2noise/ChatTTS/issues/644)
+
+ChatTTS中代码已经更新，需要安装
+
+```
+pynini==2.1.6
+WeTextProcessing==1.0.4.1
+```
+
+原理：换成中文大写数字/日期（二零二三年十二月）。
+
+
+**问题2：中文标点符号误识别。**
+
+替换掉特殊的中文标点。
+
+
+**问题3：长文本需要切分成短的。**
+
+还没做，略。
+
+
 # **参考**
 
 - https://github.com/2noise/ChatTTS
-- https://github.com/zhujinchong/ChatTTS-Deployment-using-FastAPI-and-Streamlit
+- https://github.com/yuanquderzi/ChatTTS-Deployment-using-FastAPI-and-Streamlit
 - https://github.com/6drf21e/ChatTTS_colab
 - https://blog.csdn.net/u010522887/article/details/139719895

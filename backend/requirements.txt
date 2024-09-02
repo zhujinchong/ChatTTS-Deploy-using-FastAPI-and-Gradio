@@ -10,3 +10,6 @@ uvicorn==0.30.0
 starlette==0.37.2
 pydantic==2.7.2
 soundfile==0.12.1
+numpy==1.26.4
+pynini==2.1.6
+WeTextProcessing==1.0.4.1
