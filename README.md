@@ -10,12 +10,20 @@ ChatTTS缺点：
 * 还是有点慢
 * 因为训练数据中添加了少量高频噪声，所以合成语音感觉不稳定。偶尔有个字读不出来。
 
-
 使用 FastAPI 和 Gradio 本地部署 ChatTTS 文本转语音模型，并通过 Docker Compose 进行容器化部署。
 
 **操作流程demo：**
 
-# **二、本地安装使用**
+# **二、部署**
+
+先克隆本项目
+
+```
+git clone
+cd xx
+```
+
+## 方式一：本地部署
 
 **环境依赖：**
 
@@ -24,19 +32,6 @@ conda create -n tts python==3.9
 conda activate tts 
 pip install --upgrade pip
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-```
-
-**ChatTTS代码下载：（项目里已包含ChatTTS代码，这一步可以省略）**
-
-```
-cd backend
-git clone https://github.com/2noise/ChatTTS
-cd ChatTTS
-git checkout e6412b1
-cd ..
-mv ChatTTS temp
-mv temp/ChatTTS ./ChatTTS
-rm -rf temp
 ```
 
 **ChatTTS模型下载：**
@@ -49,30 +44,22 @@ git lfs clone https://www.modelscope.cn/mirror013/ChatTTS.git
 
 **程序运行方式：**
 
-- 启动FastAPI：用于 API 接口
-
-```bash
-cd fastapi
+```
+cd backend/fastapi
 uvicorn server:app --host "0.0.0.0" --port 8000
 ```
 
-- 启动Streamlit：用于网页
+## 方式二：Docker部署
 
-```bash
-cd streamlit
-streamlit run ui.py
+先下载模型
+
+```
+cd backend/models/
+git lfs install
+git lfs clone https://www.modelscope.cn/mirror013/ChatTTS.git
 ```
 
-- 访问网页：http://localhost:8501
-- 本地使用示例
-
-```bash
-curl -X POST -H 'content-type: application/json' -d\
-   '{"text":"朋友你好啊，今天天气怎么样 ？", "output_path": "abc.wav", "seed":232}' \
-    http://localhost:8000/tts
-```
-
-# **三、Docker 部署**
+再运行
 
 ```
 docker compose build
@@ -119,7 +106,6 @@ ChatTTS 中，主要的停顿有三种，分别是
 * 笑声：笑声主要有10个等级[laugh_0]~[laugh_9]。当然，模型会根据文本自动添加笑声，也可以像上面的示例一样手动添加 [laugh].
 * 口头语：口头语主要有10个等级[oral_0]~[oral_9]。
 
-
 # **五、问题**
 
 **问题1：中文日期(2023.12)或数字(1,2,3)等无法识别。**
@@ -135,16 +121,38 @@ WeTextProcessing==1.0.4.1
 
 原理：换成中文大写数字/日期（二零二三年十二月）。
 
+已解决。(chat.infer已经内置，参数 `do_text_normalization=True`)
 
 **问题2：中文标点符号误识别。**
 
-替换掉特殊的中文标点。
-
+已解决。(utils中正则替换)
 
 **问题3：长文本需要切分成短的。**
 
-还没做，略。
+已解决。(utils中切分成批处理)
 
+**问题4：支持流式返回。**
+
+待解决
+
+**问题5：Gradio前端支持。**
+
+待解决
+
+**问题：ChatTTS用的哪个版本的代码？**
+
+参考ChatTTS_colab，操作如下：
+
+```
+cd backend
+git clone https://github.com/2noise/ChatTTS
+cd ChatTTS
+git checkout e6412b1
+cd ..
+mv ChatTTS temp
+mv temp/ChatTTS ./ChatTTS
+rm -rf temp
+```
 
 # **参考**
 
