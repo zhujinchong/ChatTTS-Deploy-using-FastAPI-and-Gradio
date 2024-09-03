@@ -16,6 +16,7 @@ def remove_chinese_punctuation(text):
     text = re.sub(r'^，|，$', '', text)
     return text
 
+
 def remove_english_punctuation(text):
     """
     移除文本中的中文标点符号 [：；！（），【】『』「」《》－‘“’”:,;!\(\)\[\]><\-] 替换为 ，

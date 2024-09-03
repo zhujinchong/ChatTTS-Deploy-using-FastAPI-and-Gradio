@@ -13,3 +13,4 @@ soundfile==0.12.1
 numpy==1.26.4
 pynini==2.1.6
 WeTextProcessing==1.0.4.1
+pybase16384==0.3.6

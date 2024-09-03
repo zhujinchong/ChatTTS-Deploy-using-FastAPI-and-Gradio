@@ -16,50 +16,45 @@ ChatTTS缺点：
 
 # **二、部署**
 
-先克隆本项目
+## 公共步骤
+
+先克隆本项目：
 
 ```
-git clone
-cd xx
+git clone git@github.com:zhujinchong/ChatTTS-Deploy-using-FastAPI-and-Gradio.git
+cd ChatTTS-Deploy-using-FastAPI-and-Gradio
+```
+
+再下载ChatTTS模型：
+
+```
+cd backend/models/
+# git lfs install
+git lfs clone https://www.modelscope.cn/mirror013/ChatTTS.git
 ```
 
 ## 方式一：本地部署
 
-**环境依赖：**
+安装环境依赖：
 
 ```
 conda create -n tts python==3.9
 conda activate tts 
 pip install --upgrade pip
+cd backend
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-**ChatTTS模型下载：**
-
-```
-cd backend/models/
-git lfs install
-git lfs clone https://www.modelscope.cn/mirror013/ChatTTS.git
-```
-
-**程序运行方式：**
+运行后端：
 
 ```
 cd backend/fastapi
-uvicorn server:app --host "0.0.0.0" --port 8000
+python api.py
 ```
 
 ## 方式二：Docker部署
 
-先下载模型
-
-```
-cd backend/models/
-git lfs install
-git lfs clone https://www.modelscope.cn/mirror013/ChatTTS.git
-```
-
-再运行
+运行
 
 ```
 docker compose build

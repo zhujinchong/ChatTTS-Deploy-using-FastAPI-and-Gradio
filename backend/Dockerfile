@@ -2,11 +2,11 @@
 FROM python:3.9-slim
 
 # 设置工作目录
-WORKDIR /fastapi
+WORKDIR /app
 
 # 将当前目录的内容复制到容器中的/fastapi目录
-COPY . /fastapi
-COPY requirements.txt /fastapi
+COPY . /app
+COPY requirements.txt /app
 
 # 安装requirements.txt中指定的所有依赖包
 RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
@@ -15,4 +15,4 @@ RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua
 EXPOSE 8000
 
 # 运行FastAPI应用的uvicorn服务器
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
