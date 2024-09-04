@@ -31,6 +31,7 @@ cd ChatTTS-Deploy-using-FastAPI-and-Gradio
 cd backend/models/
 # git lfs install
 git lfs clone https://www.modelscope.cn/mirror013/ChatTTS.git
+# git lfs clone https://www.modelscope.cn/AI-ModelScope/ChatTTS.git 新版模型不能用
 ```
 
 ## 方式一：本地部署
@@ -66,7 +67,7 @@ docker compose up
 * 构建FastAPI和Streamlit服务的Docker镜像。
 * 启动两个服务，将FastAPI暴露在8000端口，Streamlit暴露在8501端口。
 
-# **四、ChatTTS参数**
+# **三、ChatTTS参数**
 
 **固定音色**
 
@@ -101,7 +102,7 @@ ChatTTS 中，主要的停顿有三种，分别是
 * 笑声：笑声主要有10个等级[laugh_0]~[laugh_9]。当然，模型会根据文本自动添加笑声，也可以像上面的示例一样手动添加 [laugh].
 * 口头语：口头语主要有10个等级[oral_0]~[oral_9]。
 
-# **五、问题**
+# **四、问题**
 
 **问题1：中文日期(2023.12)或数字(1,2,3)等无法识别。**
 
