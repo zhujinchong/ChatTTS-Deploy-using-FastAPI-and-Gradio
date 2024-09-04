@@ -2,6 +2,32 @@ import re
 import numpy as np
 
 
+def normalize_audio(audio):
+    """
+    Normalize audio array to be between -1 and 1
+    :param audio: Input audio array
+    :return: Normalized audio array
+    """
+    audio = np.clip(audio, -1, 1)
+    max_val = np.max(np.abs(audio))
+    if max_val > 0:
+        audio = audio / max_val
+    return audio
+
+
+def combine_audio(wavs):
+    """
+    合并多段音频
+    :param wavs:
+    :return:
+    """
+    wavs = [normalize_audio(w) for w in wavs]  # 先对每段音频归一化
+    # wavs = np.array(wavs, dtype=np.float32)
+    # return wavs
+    combined_audio = np.concatenate(wavs, axis=1)  # 沿着时间轴合并
+    return normalize_audio(combined_audio)  # 合并后再次归一化
+
+
 def remove_chinese_punctuation(text):
     """
     移除文本中的中文标点符号 [：；！（），【】『』「」《》－‘“’”:,;!\(\)\[\]><\-] 替换为 ，

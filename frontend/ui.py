@@ -1,75 +1,45 @@
-import streamlit as st
+import gradio as gr
 import requests
-import json
-import re
-from cn2an import an2cn
+import io
 
-def convert_arabic_to_chinese_in_string(s):
-    def replace_func(match):
-        number = match.group(0)
-        return an2cn(number)
 
-    # 匹配所有的阿拉伯数字
-    converted_str = re.sub(r'\d+', replace_func, s)
-    return converted_str
+def tts(text, speaker_id=1):
+    response = requests.post('http://localhost:9880/tts', json={"text": text, "speaker_id": speaker_id})
+    if response.status_code == 200:
+        audio_data = response.content
+        return audio_data
+    else:
+        return None
 
-def synthesize_speech(text, output_path, seed, url="http://localhost:8000/tts"):  # docker部署localhost改为fastapi
-    payload = {
-        "text": text,
-        "output_path": output_path,
-        "seed": seed
-    }
+
+def tts_streaming(text, speaker_id=1):
+    response = requests.post('http://localhost:9880/tts/streaming', json={"text": text, "speaker_id": speaker_id})
+    if response.status_code == 200:
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:  # 过滤掉 keep-alive 新块
+                yield chunk
+    else:
+        return None
+
+
+with gr.Blocks() as demo:
+    gr.Markdown("# ChatTTS Webui")
+    default_text = "四川美食确实以辣闻名，但也有不辣的选择。\n比如甜水面、赖汤圆、蛋烘糕、叶儿粑等，这些小吃口味温和，甜而不腻，也很受欢迎。"        
+    text_input = gr.Textbox(label="Input Text", lines=4, placeholder="Please Input Text...", value=default_text)
+
+    with gr.Column():
+        speaker_id = gr.Slider(minimum=1, maximum=22, step=1, value=1, label="speaker_id")
+
+    with gr.Column():
+        generate_button = gr.Button("Generate")
+        audio_output = gr.Audio(label="Audio")
     
-    headers = {
-        "content-type": "application/json"
-    }
-    
-    try:
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
+    with gr.Column():
+        streaming_generate_button = gr.Button("流式Generate")
+        streaming_audio_output = gr.Audio(label="流式Audio", streaming=True)
+
+    generate_button.click(tts, inputs=[text_input, speaker_id], outputs=audio_output)
+    streaming_generate_button.click(tts_streaming, inputs=[text_input, speaker_id], outputs=streaming_audio_output)
         
-        if response.status_code == 200:
-            st.success(f"语音合成成功，输出保存到 {output_path}.")
-            return True
-        else:
-            st.error(f"语音合成失败，状态码: {response.status_code}")
-            st.error(f"响应: {response.text}")
-            return False
-    
-    except Exception as e:
-        st.error(f"发生错误: {e}")
-        return False
-
-# 初始化session state
-if 'synthesized' not in st.session_state:
-    st.session_state.synthesized = False
-if 'output_path' not in st.session_state:
-    st.session_state.output_path = ""
-
-st.title("ChatTTS语音合成接口")
-st.write("输入文本、输出文件路径和种子值，生成语音文件。")
-
-text = st.text_area("输入文本")
-text = convert_arabic_to_chinese_in_string(text)
-output_path = st.text_input("输出文件路径", "output.wav")
-seed = st.number_input("种子值", value=0)
-
-if st.button("合成语音"):
-    if synthesize_speech(text, output_path, seed):
-        st.session_state.synthesized = True
-        st.session_state.output_path = '/fastapi/' + output_path
-
-if st.session_state.synthesized:
-    # 播放生成的音频文件
-    audio_file = open(st.session_state.output_path, 'rb')
-    audio_bytes = audio_file.read()
-    st.audio(audio_bytes, format='audio/wav')
-    
-    # 提供下载链接
-    with open(st.session_state.output_path, 'rb') as f:
-        st.download_button(
-            label="下载生成的语音文件",
-            data=f,
-            file_name=output_path,
-            mime='audio/wav'
-        )
-
+# 运行 Gradio 应用
+demo.launch(server_name="localhost", server_port=7860)
