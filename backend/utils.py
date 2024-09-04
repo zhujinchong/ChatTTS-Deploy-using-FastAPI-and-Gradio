@@ -15,17 +15,18 @@ def normalize_audio(audio):
     return audio
 
 
-def combine_audio(wavs):
+def combine_audio_to_int(wavs):
     """
     合并多段音频
     :param wavs:
     :return:
     """
     wavs = [normalize_audio(w) for w in wavs]  # 先对每段音频归一化
-    # wavs = np.array(wavs, dtype=np.float32)
-    # return wavs
-    combined_audio = np.concatenate(wavs, axis=1)  # 沿着时间轴合并
-    return normalize_audio(combined_audio)  # 合并后再次归一化
+    # combined_audio = np.concatenate(wavs)  # 沿着时间轴合并
+    # combined_audio = normalize_audio(combined_audio)  # 合并后再次归一化
+    # 将浮点数音频样本缩放到 int16 类型能表示的范围内
+    audio = (np.concatenate(wavs) * 32767).astype(np.int16)
+    return audio
 
 
 def remove_chinese_punctuation(text):

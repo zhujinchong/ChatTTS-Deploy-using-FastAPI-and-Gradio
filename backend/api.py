@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from typing import List, Generator
 import torch
 import json
-from utils import split_text, batch_split, combine_audio
+from utils import split_text, batch_split, combine_audio_to_int
 import wave
 
 
@@ -42,14 +42,10 @@ app.add_middleware(
 
 
 class TTSInput(BaseModel):
-    text: str = ''
-    speed: int = 3
-    speaker_id: int = 1
-    speaker_emb: str = None
-    # text: str = Field(..., description="The text to be converted to speech")
-    # speed: int = Field(default=3, ge=0, le=9, description="The speed of the speech")
-    # speaker_id: int = Field(default=1, ge=1, le=22, description="The speaker id")
-    # speaker_emb: List[float] = Field(default=None, description="The speaker embedding vector")
+    text: str = Field(..., description="The text to be converted to speech")
+    speed: int = Field(default=3, ge=0, le=9, description="The speed of the speech")
+    speaker_id: int = Field(default=1, ge=1, le=22, description="The speaker id")
+    speaker_emb: List[float] = Field(default=None, description="The speaker embedding vector")
 
 
 def clear_cuda_cache():
@@ -106,15 +102,13 @@ def tts(request: TTSInput):
             use_decoder=True,
             stream=False,
         )
-        audio_data = np.array(wavs[0][0], dtype=np.float32)
-        # audio_data = (audio_data * 32767).astype(np.int16)
-        # audio_data = np.array(wavs[0][0], dtype=np.float32)
-        for wav in wavs:
-            all_wavs.append(wav[0])
+        for x in wavs:
+            audio_data = x[0]
+            # audio_data = audio_data / np.max(np.abs(audio_data))
+            all_wavs.append(audio_data)
     clear_cuda_cache()
-    # 将浮点数音频样本缩放到 int16 类型能表示的范围内
-    # combined_audio  = combine_audio(all_wavs)
-    audio = (audio_data * 32767).astype(np.int16)
+    # audio = (np.concatenate(all_wavs) * 32767).astype(np.int16)
+    audio = combine_audio_to_int(all_wavs)
     # ========================存储/返回=================================================
     # 使用 BytesIO 作为缓冲区来存储 WAV 文件的内容。
     io_buffer = io.BytesIO()
