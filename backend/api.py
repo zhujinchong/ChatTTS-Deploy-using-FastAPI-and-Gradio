@@ -165,7 +165,7 @@ def generate_tts_audio(request: TTSInput):
 def tts_stream(request: TTSInput):
     tts_generator = generate_tts_audio(request)
     def streaming_generator(tts_generator: Generator):
-        # 不知道为什么加这一段，删了可以吗
+        # 不知道为什么加这一段，删了可以吗？不可以，删了Gradio那里测得有问题
         wav_buf = io.BytesIO()
         with wave.open(wav_buf, "wb") as vfout:
             vfout.setnchannels(1)

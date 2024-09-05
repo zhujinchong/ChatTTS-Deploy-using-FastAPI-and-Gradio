@@ -3,21 +3,21 @@ version: '3'
 services:
   backend:
     build: backend/
+    container_name: backend
     ports: 
-      - 8000:8000
+      - 9880:9880
     networks:
       - deploy_network
-    container_name: fastapi
 
   frontend:
     build: frontend/
+    container_name: frontend
     depends_on:
       - backend
     ports: 
-      - 8501:8501
+      - 7860:7860
     networks:
       - deploy_network
-    container_name: streamlit
 
 networks:
   deploy_network:

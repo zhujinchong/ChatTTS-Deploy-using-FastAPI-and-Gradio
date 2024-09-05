@@ -12,7 +12,7 @@ COPY requirements.txt /app
 RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 暴露8000端口
-EXPOSE 8000
+EXPOSE 9880
 
 # 运行FastAPI应用的uvicorn服务器
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "api.py"]

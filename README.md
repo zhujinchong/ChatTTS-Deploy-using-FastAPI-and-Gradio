@@ -53,6 +53,8 @@ cd backend/fastapi
 python api.py
 ```
 
+
+
 ## 方式二：Docker部署
 
 运行
@@ -65,7 +67,7 @@ docker compose up
 这个命令将会：
 
 * 构建FastAPI和Streamlit服务的Docker镜像。
-* 启动两个服务，将FastAPI暴露在8000端口，Streamlit暴露在8501端口。
+* 启动两个服务，将FastAPI暴露在9880端口，Streamlit暴露在7860端口。
 
 # **三、ChatTTS参数**
 
